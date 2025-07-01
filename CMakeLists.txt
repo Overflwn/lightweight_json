@@ -1,0 +1,17 @@
+if(DEFINED ESP_PLATFORM)
+  # TODO: Define idf component
+else()
+  cmake_minimum_required(VERSION 3.12)
+
+  project(lightweight_json LANGUAGES C CXX)
+
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+  add_library(
+    ${PROJECT_NAME}
+    src/lightweight_json.c
+  )
+
+  target_include_directories(${PROJECT_NAME} PUBLIC include)
+endif()
+
