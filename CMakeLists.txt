@@ -12,6 +12,13 @@ else()
     src/lightweight_json.c
   )
 
+  add_executable(
+    testprog
+    src/testprog.c
+  )
+
   target_include_directories(${PROJECT_NAME} PUBLIC include)
+
+  target_link_libraries(testprog PRIVATE ${PROJECT_NAME})
 endif()
 

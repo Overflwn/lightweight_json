@@ -29,6 +29,7 @@ static void check_buffer(lightweight_json_ctx_t *ctx) {
 static void add_comma(lightweight_json_ctx_t *ctx) {
   if (ctx->objects_in_object[ctx->nesting] > 0) {
     ctx->buffer[ctx->offset++] = ',';
+    check_buffer(ctx);
   }
 }
 
@@ -90,7 +91,7 @@ int lightweight_json_array_begin(lightweight_json_ctx_t *ctx,
   add_comma(ctx);
   add_key(ctx, key);
 
-  ctx->buffer[ctx->offset++] = '{';
+  ctx->buffer[ctx->offset++] = '[';
   ctx->nesting++;
   ctx->objects_in_object[ctx->nesting] = 0;
 
@@ -102,7 +103,7 @@ int lightweight_json_array_end(lightweight_json_ctx_t *ctx) {
   if (NULL == ctx) {
     return -1;
   }
-  ctx->buffer[ctx->offset++] = '}';
+  ctx->buffer[ctx->offset++] = ']';
   ctx->nesting--;
   ctx->objects_in_object[ctx->nesting]++;
 
