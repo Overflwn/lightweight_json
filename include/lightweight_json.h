@@ -20,6 +20,13 @@ typedef enum {
   LIGHTWEIGHT_JSON_NONE
 } lightweight_json_type_e;
 
+typedef enum {
+  LIGHTWEIGHT_JSON_ERR_NONE,
+  LIGHTWEIGHT_JSON_ERR_INVALID_ARGS,
+  LIGHTWEIGHT_JSON_ERR_MAX_NESTING_REACHED,
+  LIGHTWEIGHT_JSON_ERR_INVALID_STATE
+} lightweight_json_err_t;
+
 /**
  * @brief Flush callback called every time the buffer gets full
  *
@@ -40,9 +47,20 @@ typedef struct {
   void *userdata;
 } lightweight_json_ctx_t;
 
-lightweight_json_ctx_t lightweight_json_init(char *buffer, size_t buffer_size,
+/**
+ * @brief Initialize the given context
+ *
+ * @param[in] buffer The char buffer to stream to, must be at least size 2
+ * @param[in] buffer_size The char buffer size, must be >= 2
+ * @param[in] flush_cb The flush callback to use
+ * @param[in] userdata [Optional] Userdata that gets passed to the flush
+callback
+ * @param[in] ctx The context to initialize
+ */
+lightweight_json_err_t lightweight_json_init(char *buffer, size_t buffer_size,
                                              flush_cb_t flush_cb,
-                                             void *userdata);
+                                             void *userdata,
+                                             lightweight_json_ctx_t *ctx);
 
 /**
  * @brief Begin a new object ('{') or array ('[')
@@ -51,19 +69,20 @@ lightweight_json_ctx_t lightweight_json_init(char *buffer, size_t buffer_size,
  * @param[in] key [Optional] The key to use
  * @param[in] type The type to begin
  *
- * @return 0 on success
+ * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-int lightweight_json_begin(lightweight_json_ctx_t *ctx, const char *const key,
-                           lightweight_json_type_e type);
+lightweight_json_err_t lightweight_json_begin(lightweight_json_ctx_t *ctx,
+                                              const char *const key,
+                                              lightweight_json_type_e type);
 
 /**
  * @brief End the current object or array
  *
  * @param[in] ctx The context
  *
- * @return 0 on success
+ * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-int lightweight_json_end(lightweight_json_ctx_t *ctx);
+lightweight_json_err_t lightweight_json_end(lightweight_json_ctx_t *ctx);
 
 /**
  * @brief Add a string
@@ -71,10 +90,11 @@ int lightweight_json_end(lightweight_json_ctx_t *ctx);
  * @param[in] ctx The context
  * @param[in] key [Optional] key to use
  * @param[in] value The string to add
- * @return 0 on success
+ * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-int lightweight_json_add_string(lightweight_json_ctx_t *ctx,
-                                const char *const key, const char *const value);
+lightweight_json_err_t lightweight_json_add_string(lightweight_json_ctx_t *ctx,
+                                                   const char *const key,
+                                                   const char *const value);
 
 /**
  * @brief Add a double
@@ -82,10 +102,11 @@ int lightweight_json_add_string(lightweight_json_ctx_t *ctx,
  * @param[in] ctx The context
  * @param[in] key [Optional] key to use
  * @param[in] value The double to add
- * @return 0 on success
+ * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-int lightweight_json_add_double(lightweight_json_ctx_t *ctx,
-                                const char *const key, double value);
+lightweight_json_err_t lightweight_json_add_double(lightweight_json_ctx_t *ctx,
+                                                   const char *const key,
+                                                   double value);
 
 /**
  * @brief Add a uint64_t
@@ -93,10 +114,11 @@ int lightweight_json_add_double(lightweight_json_ctx_t *ctx,
  * @param[in] ctx The context
  * @param[in] key [Optional] key to use
  * @param[in] value The uint64_t to add
- * @return 0 on success
+ * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-int lightweight_json_add_uint64(lightweight_json_ctx_t *ctx,
-                                const char *const key, uint64_t value);
+lightweight_json_err_t lightweight_json_add_uint64(lightweight_json_ctx_t *ctx,
+                                                   const char *const key,
+                                                   uint64_t value);
 
 /**
  * @brief Add a int64_t
@@ -104,10 +126,11 @@ int lightweight_json_add_uint64(lightweight_json_ctx_t *ctx,
  * @param[in] ctx The context
  * @param[in] key [Optional] key to use
  * @param[in] value The int64_t to add
- * @return 0 on success
+ * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-int lightweight_json_add_int64(lightweight_json_ctx_t *ctx,
-                               const char *const key, int64_t value);
+lightweight_json_err_t lightweight_json_add_int64(lightweight_json_ctx_t *ctx,
+                                                  const char *const key,
+                                                  int64_t value);
 
 /**
  * @brief Flush the buffer manually, used for when example your object is done
@@ -115,9 +138,9 @@ int lightweight_json_add_int64(lightweight_json_ctx_t *ctx,
  *
  * @param[in] ctx The context
  *
- * @return 0 on success
+ * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-int lightweight_json_flush(lightweight_json_ctx_t *ctx);
+lightweight_json_err_t lightweight_json_flush(lightweight_json_ctx_t *ctx);
 
 // --- Helper defines ---
 // These expect the context to be a static value called "ctx" in the current
