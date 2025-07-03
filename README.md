@@ -1,6 +1,6 @@
 # lightweight_json
 
-This is a simple C99 JSON serializer which serializes data as JSON directly to a char buffer.
+This is a simple C99 JSON serializer which serializes data directly to a char buffer.
 
 ## Supported Types
 - Strings
@@ -13,3 +13,7 @@ The default maximum nesting is 10, but can be modified by defining `LIGHTWEIGHT_
 
 ## Caveats
 No de-serialization. Might be added later.
+
+## Documentation / Example Code
+The header file is rather small and the functions are documented, feel free to read through it.
+There is also a small example program at `src/testprog.c`.
