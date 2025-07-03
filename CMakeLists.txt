@@ -1,5 +1,11 @@
 if(DEFINED ESP_PLATFORM)
-  # TODO: Define idf component
+  idf_component_register(
+    SRCS
+    src/lightweight_json.c
+
+    INCLUDE_DIRS
+    include
+  )
 else()
   cmake_minimum_required(VERSION 3.12)
 
