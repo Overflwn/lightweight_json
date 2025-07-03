@@ -8,7 +8,18 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 
+// You may re-define this before including
+#ifndef LIGHTWEIGHT_JSON_MAX_NESTING_SIZE
 #define LIGHTWEIGHT_JSON_MAX_NESTING_SIZE 10
+#endif
+
+typedef enum {
+  LIGHTWEIGHT_JSON_OBJECT,
+  LIGHTWEIGHT_JSON_ARRAY,
+  // Used for safety check
+  LIGHTWEIGHT_JSON_NONE
+} lightweight_json_type_e;
+
 /**
  * @brief Flush callback called every time the buffer gets full
  *
@@ -25,6 +36,7 @@ typedef struct {
   int offset;
   int nesting;
   int objects_in_object[LIGHTWEIGHT_JSON_MAX_NESTING_SIZE];
+  lightweight_json_type_e object_type[LIGHTWEIGHT_JSON_MAX_NESTING_SIZE];
   void *userdata;
 } lightweight_json_ctx_t;
 
@@ -33,40 +45,25 @@ lightweight_json_ctx_t lightweight_json_init(char *buffer, size_t buffer_size,
                                              void *userdata);
 
 /**
- * @brief Begin a new object ('{')
+ * @brief Begin a new object ('{') or array ('[')
  *
  * @param[in] ctx The context
- * @param[in] key [Optional] key to use
+ * @param[in] key [Optional] The key to use
+ * @param[in] type The type to begin
+ *
  * @return 0 on success
  */
-int lightweight_json_object_begin(lightweight_json_ctx_t *ctx,
-                                  const char *const key);
+int lightweight_json_begin(lightweight_json_ctx_t *ctx, const char *const key,
+                           lightweight_json_type_e type);
 
 /**
- * @brief End the current object ('}')
+ * @brief End the current object or array
  *
  * @param[in] ctx The context
- * @return 0 on success
- */
-int lightweight_json_object_end(lightweight_json_ctx_t *ctx);
-
-/**
- * @brief Begin a new array ('[')
  *
- * @param[in] ctx The context
- * @param[in] key [Optional] key to use
  * @return 0 on success
  */
-int lightweight_json_array_begin(lightweight_json_ctx_t *ctx,
-                                 const char *const key);
-
-/**
- * @brief End the current array (']')
- *
- * @param[in] ctx The context
- * @return 0 on success
- */
-int lightweight_json_array_end(lightweight_json_ctx_t *ctx);
+int lightweight_json_end(lightweight_json_ctx_t *ctx);
 
 /**
  * @brief Add a string
@@ -121,6 +118,23 @@ int lightweight_json_add_int64(lightweight_json_ctx_t *ctx,
  * @return 0 on success
  */
 int lightweight_json_flush(lightweight_json_ctx_t *ctx);
+
+// --- Helper defines ---
+// These expect the context to be a static value called "ctx" in the current
+// scope
+
+#define LIGHTWEIGHT_JSON_BEGIN(_key, _type)                                    \
+  lightweight_json_begin(&ctx, _key, _type)
+#define LIGHTWEIGHT_JSON_END() lightweight_json_end(&ctx)
+#define LIGHTWEIGHT_JSON_ADD_STRING(_key, _value)                              \
+  lightweight_json_add_string(&ctx, _key, _value)
+#define LIGHTWEIGHT_JSON_ADD_DOUBLE(_key, _value)                              \
+  lightweight_json_add_double(&ctx, _key, _value)
+#define LIGHTWEIGHT_JSON_ADD_UINT64(_key, _value)                              \
+  lightweight_json_add_uint64(&ctx, _key, _value)
+#define LIGHTWEIGHT_JSON_ADD_INT64(_key, _value)                               \
+  lightweight_json_add_int64(&ctx, _key, _value)
+#define LIGHTWEIGHT_JSON_FLUSH() lightweight_json_flush(&ctx)
 
 #ifdef __cplusplus
 }

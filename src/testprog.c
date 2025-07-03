@@ -8,81 +8,88 @@ int main(int argc, char **argv) {
   lightweight_json_ctx_t ctx =
       lightweight_json_init(buf, sizeof(buf), flush_cb, NULL);
 
-  int ret = lightweight_json_object_begin(&ctx, NULL);
+  int ret = LIGHTWEIGHT_JSON_BEGIN(NULL, LIGHTWEIGHT_JSON_OBJECT);
   if (ret != 0) {
     printf("Failed to add object!\n");
     return 1;
   }
 
-  ret = lightweight_json_add_string(&ctx, "string", "Hello, world!");
+  ret = LIGHTWEIGHT_JSON_ADD_STRING("string", "Hello, world!");
   if (ret != 0) {
     printf("Failed to add string!\n");
     return 1;
   }
 
-  ret = lightweight_json_add_double(&ctx, "double", 1234.5678);
+  ret = LIGHTWEIGHT_JSON_ADD_DOUBLE("double", 1234.5678);
   if (ret != 0) {
     printf("Failed to add double!\n");
     return 1;
   }
-  ret = lightweight_json_add_int64(&ctx, "int64", -123456789);
+  ret = LIGHTWEIGHT_JSON_ADD_INT64("int64", -123456789);
   if (ret != 0) {
     printf("Failed to add int64!\n");
     return 1;
   }
-  ret = lightweight_json_add_uint64(&ctx, "uint64", 123456789);
+  ret = LIGHTWEIGHT_JSON_ADD_UINT64("uint64", 123456789);
   if (ret != 0) {
     printf("Failed to add uint64!\n");
     return 1;
   }
 
-  ret = lightweight_json_array_begin(&ctx, "array");
+  ret = LIGHTWEIGHT_JSON_BEGIN("array", LIGHTWEIGHT_JSON_ARRAY);
   if (ret != 0) {
     printf("Failed to add array!\n");
     return 1;
   }
 
   for (uint64_t i = 0; i < 10; i++) {
-    ret = lightweight_json_add_uint64(&ctx, NULL, i);
+    ret = LIGHTWEIGHT_JSON_ADD_UINT64(NULL, i);
     if (ret != 0) {
       printf("Failed to add value!\n");
       return 1;
     }
   }
 
-  // ret = lightweight_json_object_begin(&ctx, NULL);
-  // if (ret != 0) {
-  //   printf("Failed to add object!\n");
-  //   return 1;
-  // }
-  // ret = lightweight_json_add_uint64(&ctx, NULL, 123);
-  // if (ret != 0) {
-  //   printf("Failed to add value!\n");
-  //   return 1;
-  // }
-  // ret = lightweight_json_add_uint64(&ctx, "b", 123);
-  // if (ret != 0) {
-  //   printf("Failed to add value!\n");
-  //   return 1;
-  // }
-  // ret = lightweight_json_object_end(&ctx);
-  // if (ret != 0) {
-  //   printf("Failed to end object!\n");
-  //   return 1;
-  // }
-
-  ret = lightweight_json_array_end(&ctx);
+  ret = LIGHTWEIGHT_JSON_BEGIN(NULL, LIGHTWEIGHT_JSON_OBJECT);
   if (ret != 0) {
-    printf("Failed to end array!\n");
+    printf("Failed to add object!\n");
     return 1;
   }
-  ret = lightweight_json_object_end(&ctx);
+
+  // NOTE: Obviously we can add objects without a key to an object even though
+  // it makes no sense
+  ret = LIGHTWEIGHT_JSON_ADD_UINT64(NULL, 123);
+  if (ret != 0) {
+    printf("Failed to add value!\n");
+    return 1;
+  }
+
+  // NOTE: And mix and match too, though again, it makes no sense
+  ret = LIGHTWEIGHT_JSON_ADD_UINT64("b", 123);
+  if (ret != 0) {
+    printf("Failed to add value!\n");
+    return 1;
+  }
+
+  ret = LIGHTWEIGHT_JSON_END();
   if (ret != 0) {
     printf("Failed to end object!\n");
     return 1;
   }
 
-  ret = lightweight_json_flush(&ctx);
+  ret = LIGHTWEIGHT_JSON_END();
+  if (ret != 0) {
+    printf("Failed to end array!\n");
+    return 1;
+  }
+
+  ret = LIGHTWEIGHT_JSON_END();
+  if (ret != 0) {
+    printf("Failed to end object!\n");
+    return 1;
+  }
+
+  ret = LIGHTWEIGHT_JSON_FLUSH();
   if (ret != 0) {
     printf("Failed to flush!\n");
     return 1;

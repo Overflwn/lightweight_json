@@ -13,6 +13,7 @@ lightweight_json_ctx_t lightweight_json_init(char *buffer, size_t buffer_size,
       .offset = 0,
       .nesting = -1,
       .objects_in_object = {0},
+      .object_type = {0},
       .userdata = userdata,
   };
   return ctx;
@@ -55,55 +56,50 @@ static void add_str(lightweight_json_ctx_t *ctx, const char *const value) {
   }
 }
 
-int lightweight_json_object_begin(lightweight_json_ctx_t *ctx,
-                                  const char *const key) {
+int lightweight_json_begin(lightweight_json_ctx_t *ctx, const char *const key,
+                           lightweight_json_type_e type) {
   if (NULL == ctx) {
     return -1;
   }
+  if ((uint8_t)LIGHTWEIGHT_JSON_NONE <= (uint8_t)type) {
+    return -1;
+  }
+
   add_comma(ctx);
   add_key(ctx, key);
 
-  ctx->buffer[ctx->offset++] = '{';
+  switch (type) {
+  case LIGHTWEIGHT_JSON_OBJECT:
+    ctx->buffer[ctx->offset++] = '{';
+    break;
+  case LIGHTWEIGHT_JSON_ARRAY:
+    ctx->buffer[ctx->offset++] = '[';
+    break;
+  default:
+    return -1;
+  }
   ctx->nesting++;
   ctx->objects_in_object[ctx->nesting] = 0;
-
+  ctx->object_type[ctx->nesting] = type;
   check_buffer(ctx);
   return 0;
 }
 
-int lightweight_json_object_end(lightweight_json_ctx_t *ctx) {
+int lightweight_json_end(lightweight_json_ctx_t *ctx) {
   if (NULL == ctx) {
     return -1;
   }
-  ctx->buffer[ctx->offset++] = '}';
-  ctx->nesting--;
-  ctx->objects_in_object[ctx->nesting]++;
-
-  check_buffer(ctx);
-  return 0;
-}
-
-int lightweight_json_array_begin(lightweight_json_ctx_t *ctx,
-                                 const char *const key) {
-  if (NULL == ctx) {
+  switch (ctx->object_type[ctx->nesting]) {
+  case LIGHTWEIGHT_JSON_OBJECT:
+    ctx->buffer[ctx->offset++] = '}';
+    break;
+  case LIGHTWEIGHT_JSON_ARRAY:
+    ctx->buffer[ctx->offset++] = ']';
+    break;
+  default:
+    // Shouldn't be possible unless the ctx is broken
     return -1;
   }
-  add_comma(ctx);
-  add_key(ctx, key);
-
-  ctx->buffer[ctx->offset++] = '[';
-  ctx->nesting++;
-  ctx->objects_in_object[ctx->nesting] = 0;
-
-  check_buffer(ctx);
-  return 0;
-}
-
-int lightweight_json_array_end(lightweight_json_ctx_t *ctx) {
-  if (NULL == ctx) {
-    return -1;
-  }
-  ctx->buffer[ctx->offset++] = ']';
   ctx->nesting--;
   ctx->objects_in_object[ctx->nesting]++;
 
