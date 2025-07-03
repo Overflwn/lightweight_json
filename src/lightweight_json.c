@@ -119,6 +119,10 @@ lightweight_json_err_t lightweight_json_add_string(lightweight_json_ctx_t *ctx,
   if (NULL == ctx || NULL == value) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
+  if (ctx->nesting < 0) {
+    // The user didn't begin at least a "main" object
+    return LIGHTWEIGHT_JSON_ERR_INVALID_STATE;
+  }
   add_comma(ctx);
   add_key(ctx, key);
 
@@ -139,6 +143,10 @@ lightweight_json_err_t lightweight_json_add_double(lightweight_json_ctx_t *ctx,
   if (NULL == ctx) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
+  if (ctx->nesting < 0) {
+    // The user didn't begin at least a "main" object
+    return LIGHTWEIGHT_JSON_ERR_INVALID_STATE;
+  }
   char temp[64] = {0};
   snprintf(temp, sizeof(temp), "%.8lf", value);
   add_comma(ctx);
@@ -154,6 +162,10 @@ lightweight_json_err_t lightweight_json_add_int64(lightweight_json_ctx_t *ctx,
   if (NULL == ctx) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
+  if (ctx->nesting < 0) {
+    // The user didn't begin at least a "main" object
+    return LIGHTWEIGHT_JSON_ERR_INVALID_STATE;
+  }
   char temp[64] = {0};
   snprintf(temp, sizeof(temp), "%" PRId64, value);
   add_comma(ctx);
@@ -168,6 +180,10 @@ lightweight_json_err_t lightweight_json_add_uint64(lightweight_json_ctx_t *ctx,
                                                    uint64_t value) {
   if (NULL == ctx) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
+  }
+  if (ctx->nesting < 0) {
+    // The user didn't begin at least a "main" object
+    return LIGHTWEIGHT_JSON_ERR_INVALID_STATE;
   }
   char temp[64] = {0};
   snprintf(temp, sizeof(temp), "%" PRIu64, value);
