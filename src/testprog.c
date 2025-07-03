@@ -1,13 +1,21 @@
 #include "lightweight_json.h"
 #include <stdio.h>
 
-void flush_cb(char *buf, size_t len, void *userdata) { printf("%s", buf); }
+#define BUFFER_SIZE 3
+
+static int times_flushed = 0;
+
+void flush_cb(char *buf, size_t len, void *userdata) {
+  printf("%s", buf);
+  times_flushed++;
+}
 
 int main(int argc, char **argv) {
-  char buf[3] = {0};
+  printf("lightweight_json test with BUFFER_SIZE = %d\n", BUFFER_SIZE);
+  char buf[BUFFER_SIZE] = {0};
   lightweight_json_ctx_t ctx = {0};
   lightweight_json_err_t err =
-      lightweight_json_init(buf, sizeof(buf), flush_cb, NULL, &ctx);
+      lightweight_json_init(buf, BUFFER_SIZE, flush_cb, NULL, &ctx);
   if (LIGHTWEIGHT_JSON_ERR_NONE != err) {
     printf("failed to initialize context!\n");
     return 1;
@@ -101,5 +109,7 @@ int main(int argc, char **argv) {
   }
 
   printf("\n");
+
+  printf("flush_cb was called %d times!\n", times_flushed);
   return 0;
 }
