@@ -30,11 +30,11 @@ typedef enum {
 /**
  * @brief Flush callback called every time the buffer gets full
  *
- * @param[in] The buffer
- * @param[in] The amount of data to flush
- * @param[in] The userdata passed when the context was initialized
+ * @param[in] buffer The buffer. NOTE: The buffer will not be null terminated! Use `amount` for the string length
+ * @param[in] amount The amount of data to flush
+ * @param[in] userdata The userdata passed when the context was initialized
  */
-typedef void (*flush_cb_t)(char *, size_t, void *);
+typedef void (*flush_cb_t)(char *buffer, size_t amount, void *userdata);
 
 typedef struct {
   char *buffer;
@@ -57,7 +57,7 @@ typedef struct {
 callback
  * @param[in] ctx The context to initialize
  */
-lightweight_json_err_t lightweight_json_init(char *buffer, size_t buffer_size,
+lightweight_json_err_t lightweight_json_writer_init(char *buffer, size_t buffer_size,
                                              flush_cb_t flush_cb,
                                              void *userdata,
                                              lightweight_json_ctx_t *ctx);
@@ -71,7 +71,7 @@ lightweight_json_err_t lightweight_json_init(char *buffer, size_t buffer_size,
  *
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_begin(lightweight_json_ctx_t *ctx,
+lightweight_json_err_t lightweight_json_writer_begin(lightweight_json_ctx_t *ctx,
                                               const char *const key,
                                               lightweight_json_type_e type);
 
@@ -82,7 +82,7 @@ lightweight_json_err_t lightweight_json_begin(lightweight_json_ctx_t *ctx,
  *
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_end(lightweight_json_ctx_t *ctx);
+lightweight_json_err_t lightweight_json_writer_end(lightweight_json_ctx_t *ctx);
 
 /**
  * @brief Add a string
@@ -92,7 +92,7 @@ lightweight_json_err_t lightweight_json_end(lightweight_json_ctx_t *ctx);
  * @param[in] value The string to add
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_add_string(lightweight_json_ctx_t *ctx,
+lightweight_json_err_t lightweight_json_writer_add_string(lightweight_json_ctx_t *ctx,
                                                    const char *const key,
                                                    const char *const value);
 
@@ -104,7 +104,7 @@ lightweight_json_err_t lightweight_json_add_string(lightweight_json_ctx_t *ctx,
  * @param[in] value The double to add
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_add_double(lightweight_json_ctx_t *ctx,
+lightweight_json_err_t lightweight_json_writer_add_double(lightweight_json_ctx_t *ctx,
                                                    const char *const key,
                                                    double value);
 
@@ -116,7 +116,7 @@ lightweight_json_err_t lightweight_json_add_double(lightweight_json_ctx_t *ctx,
  * @param[in] value The uint64_t to add
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_add_uint64(lightweight_json_ctx_t *ctx,
+lightweight_json_err_t lightweight_json_writer_add_uint64(lightweight_json_ctx_t *ctx,
                                                    const char *const key,
                                                    uint64_t value);
 
@@ -128,7 +128,7 @@ lightweight_json_err_t lightweight_json_add_uint64(lightweight_json_ctx_t *ctx,
  * @param[in] value The int64_t to add
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_add_int64(lightweight_json_ctx_t *ctx,
+lightweight_json_err_t lightweight_json_writer_add_int64(lightweight_json_ctx_t *ctx,
                                                   const char *const key,
                                                   int64_t value);
 
@@ -140,24 +140,24 @@ lightweight_json_err_t lightweight_json_add_int64(lightweight_json_ctx_t *ctx,
  *
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_flush(lightweight_json_ctx_t *ctx);
+lightweight_json_err_t lightweight_json_writer_flush(lightweight_json_ctx_t *ctx);
 
 // --- Helper defines ---
 // These expect the context to be a static value called "ctx" in the current
 // scope
 
 #define LIGHTWEIGHT_JSON_BEGIN(_key, _type)                                    \
-  lightweight_json_begin(&ctx, _key, _type)
-#define LIGHTWEIGHT_JSON_END() lightweight_json_end(&ctx)
+  lightweight_json_writer_begin(&ctx, _key, _type)
+#define LIGHTWEIGHT_JSON_END() lightweight_json_writer_end(&ctx)
 #define LIGHTWEIGHT_JSON_ADD_STRING(_key, _value)                              \
-  lightweight_json_add_string(&ctx, _key, _value)
+  lightweight_json_writer_add_string(&ctx, _key, _value)
 #define LIGHTWEIGHT_JSON_ADD_DOUBLE(_key, _value)                              \
-  lightweight_json_add_double(&ctx, _key, _value)
+  lightweight_json_writer_add_double(&ctx, _key, _value)
 #define LIGHTWEIGHT_JSON_ADD_UINT64(_key, _value)                              \
-  lightweight_json_add_uint64(&ctx, _key, _value)
+  lightweight_json_writer_add_uint64(&ctx, _key, _value)
 #define LIGHTWEIGHT_JSON_ADD_INT64(_key, _value)                               \
-  lightweight_json_add_int64(&ctx, _key, _value)
-#define LIGHTWEIGHT_JSON_FLUSH() lightweight_json_flush(&ctx)
+  lightweight_json_writer_add_int64(&ctx, _key, _value)
+#define LIGHTWEIGHT_JSON_FLUSH() lightweight_json_writer_flush(&ctx)
 
 #ifdef __cplusplus
 }

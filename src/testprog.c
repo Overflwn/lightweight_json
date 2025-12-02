@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
   char buf[BUFFER_SIZE] = {0};
   lightweight_json_ctx_t ctx = {0};
   lightweight_json_err_t err =
-      lightweight_json_init(buf, BUFFER_SIZE, flush_cb, NULL, &ctx);
+      lightweight_json_writer_init(buf, BUFFER_SIZE, flush_cb, NULL, &ctx);
   if (LIGHTWEIGHT_JSON_ERR_NONE != err) {
     printf("failed to initialize context!\n");
     return 1;

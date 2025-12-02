@@ -2,8 +2,9 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
-lightweight_json_err_t lightweight_json_init(char *buffer, size_t buffer_size,
+lightweight_json_err_t lightweight_json_writer_init(char *buffer, size_t buffer_size,
                                              flush_cb_t flush_cb,
                                              void *userdata,
                                              lightweight_json_ctx_t *ctx) {
@@ -24,10 +25,9 @@ lightweight_json_err_t lightweight_json_init(char *buffer, size_t buffer_size,
   return LIGHTWEIGHT_JSON_ERR_NONE;
 }
 
-static void check_buffer(lightweight_json_ctx_t *ctx) {
-  if (ctx->offset == ctx->buffer_size - 1) {
-    ctx->buffer[ctx->offset] = '\0';
-    ctx->flush_cb(ctx->buffer, ctx->buffer_size, ctx->userdata);
+static void check_buffer(lightweight_json_ctx_t *ctx, bool force) {
+  if (ctx->offset == ctx->buffer_size || force) {
+    ctx->flush_cb(ctx->buffer, ctx->offset, ctx->userdata);
     ctx->offset = 0;
   }
 }
@@ -35,33 +35,33 @@ static void check_buffer(lightweight_json_ctx_t *ctx) {
 static void add_comma(lightweight_json_ctx_t *ctx) {
   if (ctx->objects_in_object[ctx->nesting] > 0) {
     ctx->buffer[ctx->offset++] = ',';
-    check_buffer(ctx);
+    check_buffer(ctx, false);
   }
 }
 
 static void add_key(lightweight_json_ctx_t *ctx, const char *const key) {
   if (NULL != key) {
     ctx->buffer[ctx->offset++] = '\"';
-    check_buffer(ctx);
+    check_buffer(ctx, false);
     for (int i = 0; i < strlen(key); i++) {
       ctx->buffer[ctx->offset++] = key[i];
-      check_buffer(ctx);
+      check_buffer(ctx, false);
     }
     ctx->buffer[ctx->offset++] = '\"';
-    check_buffer(ctx);
+    check_buffer(ctx, false);
     ctx->buffer[ctx->offset++] = ':';
-    check_buffer(ctx);
+    check_buffer(ctx, false);
   }
 }
 
 static void add_str(lightweight_json_ctx_t *ctx, const char *const value) {
   for (int i = 0; i < strlen(value); i++) {
     ctx->buffer[ctx->offset++] = value[i];
-    check_buffer(ctx);
+    check_buffer(ctx, false);
   }
 }
 
-lightweight_json_err_t lightweight_json_begin(lightweight_json_ctx_t *ctx,
+lightweight_json_err_t lightweight_json_writer_begin(lightweight_json_ctx_t *ctx,
                                               const char *const key,
                                               lightweight_json_type_e type) {
   if (NULL == ctx || (uint8_t)LIGHTWEIGHT_JSON_NONE <= (uint8_t)type) {
@@ -87,11 +87,11 @@ lightweight_json_err_t lightweight_json_begin(lightweight_json_ctx_t *ctx,
   ctx->nesting++;
   ctx->objects_in_object[ctx->nesting] = 0;
   ctx->object_type[ctx->nesting] = type;
-  check_buffer(ctx);
+  check_buffer(ctx, false);
   return LIGHTWEIGHT_JSON_ERR_NONE;
 }
 
-lightweight_json_err_t lightweight_json_end(lightweight_json_ctx_t *ctx) {
+lightweight_json_err_t lightweight_json_writer_end(lightweight_json_ctx_t *ctx) {
   if (NULL == ctx) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
@@ -109,11 +109,11 @@ lightweight_json_err_t lightweight_json_end(lightweight_json_ctx_t *ctx) {
   ctx->nesting--;
   ctx->objects_in_object[ctx->nesting]++;
 
-  check_buffer(ctx);
+  check_buffer(ctx, false);
   return LIGHTWEIGHT_JSON_ERR_NONE;
 }
 
-lightweight_json_err_t lightweight_json_add_string(lightweight_json_ctx_t *ctx,
+lightweight_json_err_t lightweight_json_writer_add_string(lightweight_json_ctx_t *ctx,
                                                    const char *const key,
                                                    const char *const value) {
   if (NULL == ctx || NULL == value) {
@@ -127,17 +127,17 @@ lightweight_json_err_t lightweight_json_add_string(lightweight_json_ctx_t *ctx,
   add_key(ctx, key);
 
   ctx->buffer[ctx->offset++] = '\"';
-  check_buffer(ctx);
+  check_buffer(ctx, false);
   add_str(ctx, value);
   ctx->buffer[ctx->offset++] = '\"';
-  check_buffer(ctx);
+  check_buffer(ctx, false);
 
   ctx->objects_in_object[ctx->nesting]++;
 
   return LIGHTWEIGHT_JSON_ERR_NONE;
 }
 
-lightweight_json_err_t lightweight_json_add_double(lightweight_json_ctx_t *ctx,
+lightweight_json_err_t lightweight_json_writer_add_double(lightweight_json_ctx_t *ctx,
                                                    const char *const key,
                                                    double value) {
   if (NULL == ctx) {
@@ -156,7 +156,7 @@ lightweight_json_err_t lightweight_json_add_double(lightweight_json_ctx_t *ctx,
   return LIGHTWEIGHT_JSON_ERR_NONE;
 }
 
-lightweight_json_err_t lightweight_json_add_int64(lightweight_json_ctx_t *ctx,
+lightweight_json_err_t lightweight_json_writer_add_int64(lightweight_json_ctx_t *ctx,
                                                   const char *const key,
                                                   int64_t value) {
   if (NULL == ctx) {
@@ -175,7 +175,7 @@ lightweight_json_err_t lightweight_json_add_int64(lightweight_json_ctx_t *ctx,
   return LIGHTWEIGHT_JSON_ERR_NONE;
 }
 
-lightweight_json_err_t lightweight_json_add_uint64(lightweight_json_ctx_t *ctx,
+lightweight_json_err_t lightweight_json_writer_add_uint64(lightweight_json_ctx_t *ctx,
                                                    const char *const key,
                                                    uint64_t value) {
   if (NULL == ctx) {
@@ -194,15 +194,11 @@ lightweight_json_err_t lightweight_json_add_uint64(lightweight_json_ctx_t *ctx,
   return LIGHTWEIGHT_JSON_ERR_NONE;
 }
 
-lightweight_json_err_t lightweight_json_flush(lightweight_json_ctx_t *ctx) {
+lightweight_json_err_t lightweight_json_writer_flush(lightweight_json_ctx_t *ctx) {
   if (NULL == ctx) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
 
-  // terminate string, might be earlier
-  ctx->buffer[ctx->offset] = '\0';
-  // Force offset to the end so that the check function flushes
-  ctx->offset = ctx->buffer_size - 1;
-  check_buffer(ctx);
+  check_buffer(ctx, true);
   return LIGHTWEIGHT_JSON_ERR_NONE;
 }
