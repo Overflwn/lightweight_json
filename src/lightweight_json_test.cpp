@@ -9,7 +9,7 @@ static int times_flushed = 0;
 static char *last_buffer = NULL;
 static size_t last_size = 0;
 static char buffer[3] = {0};
-static lightweight_json_ctx_t ctx = {0};
+static lightweight_json_writer_ctx_t ctx = {0};
 void flush_cb(char *buffer, size_t buffer_size, void *userdata) {
   times_flushed++;
   last_buffer = buffer;
@@ -26,7 +26,7 @@ TEST(HelloTest, BasicAssertions) {
 }
 
 static void setup() {
-  memset(&ctx, 0, sizeof(lightweight_json_ctx_t));
+  memset(&ctx, 0, sizeof(lightweight_json_writer_ctx_t));
   last_buffer = NULL;
   last_size = 0;
   times_flushed = 0;

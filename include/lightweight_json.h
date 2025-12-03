@@ -8,7 +8,7 @@ extern "C" {
 #include <stdint.h>
 #include <stdlib.h>
 
-// You may re-define this before including
+// You may define this before building
 #ifndef LIGHTWEIGHT_JSON_MAX_NESTING_SIZE
 #define LIGHTWEIGHT_JSON_MAX_NESTING_SIZE 10
 #endif
@@ -24,7 +24,10 @@ typedef enum {
   LIGHTWEIGHT_JSON_ERR_NONE,
   LIGHTWEIGHT_JSON_ERR_INVALID_ARGS,
   LIGHTWEIGHT_JSON_ERR_MAX_NESTING_REACHED,
-  LIGHTWEIGHT_JSON_ERR_INVALID_STATE
+  LIGHTWEIGHT_JSON_ERR_INVALID_STATE,
+  LIGHTWEIGHT_JSON_ERR_NOT_FOUND,
+  LIGHTWEIGHT_JSON_ERR_INVALID_JSON,
+  LIGHTWEIGHT_JSON_ERR_INVALID_DATATYPE,
 } lightweight_json_err_t;
 
 /**
@@ -45,7 +48,16 @@ typedef struct {
   int objects_in_object[LIGHTWEIGHT_JSON_MAX_NESTING_SIZE];
   lightweight_json_type_e object_type[LIGHTWEIGHT_JSON_MAX_NESTING_SIZE];
   void *userdata;
-} lightweight_json_ctx_t;
+} lightweight_json_writer_ctx_t;
+
+typedef struct {
+  const char *buffer;
+  size_t buffer_size;
+  int nesting;
+  size_t current_offset[LIGHTWEIGHT_JSON_MAX_NESTING_SIZE];
+  size_t current_suboffset[LIGHTWEIGHT_JSON_MAX_NESTING_SIZE];
+  lightweight_json_type_e object_type[LIGHTWEIGHT_JSON_MAX_NESTING_SIZE];
+} lightweight_json_reader_ctx_t;
 
 /**
  * @brief Initialize the given context
@@ -60,7 +72,84 @@ callback
 lightweight_json_err_t lightweight_json_writer_init(char *buffer, size_t buffer_size,
                                              flush_cb_t flush_cb,
                                              void *userdata,
-                                             lightweight_json_ctx_t *ctx);
+                                             lightweight_json_writer_ctx_t *ctx);
+
+/**
+ * @brief Initialize the given reader context
+ * 
+ * @param[in] buffer the string to parse
+ * @param[in] buffer_size the buffer size
+ * @param[in] ctx the context to initialize
+ */
+lightweight_json_err_t lightweight_json_reader_init(const char *buffer, size_t buffer_size, lightweight_json_reader_ctx_t *ctx);
+
+/**
+ * @brief Check if the given key exists in the current object the reader is in 
+ * 
+ * @param[in] ctx the context
+ * @param[in] key the key to look for
+ */
+lightweight_json_err_t lightweight_json_reader_key_exists(lightweight_json_reader_ctx_t *ctx, const char *key);
+
+/**
+ * @brief Get a string from the value of key or from the current array position
+ *        NOTE: The string gets written into the given buffer and will be null terminated
+ * 
+ * @param[in] ctx the context
+ * @param[in] key [Optional] the key to look for, leave NULL to use the current array position instead
+ * @param[in] buffer Buffer to write the value into
+ * @param[in] buffer_len the buffer size
+ */
+lightweight_json_err_t lightweight_json_reader_get_string(lightweight_json_reader_ctx_t *ctx, const char *key, char *buffer, size_t buffer_len);
+
+/**
+ * @brief Get a uint64 from the value of key or from the current array position
+ * 
+ * @param[in] ctx the context
+ * @param[in] key [Optional] the key to look for, leave NULL to use the current array position instead
+ * @param[out] out_value The read value
+ */
+lightweight_json_err_t lightweight_json_reader_get_uint64(lightweight_json_reader_ctx_t *ctx, const char *key, uint64_t *out_value);
+
+/**
+ * @brief Get a int64 from the value of key or from the current array position
+ * 
+ * @param[in] ctx the context
+ * @param[in] key [Optional] the key to look for, leave NULL to use the current array position instead
+ * @param[out] out_value The read value
+ */
+lightweight_json_err_t lightweight_json_reader_get_int64(lightweight_json_reader_ctx_t *ctx, const char *key, int64_t *out_value);
+
+/**
+ * @brief Get a double from the value of key or from the current array position
+ * 
+ * @param[in] ctx the context
+ * @param[in] key [Optional] the key to look for, leave NULL to use the current array position instead
+ * @param[out] out_value The read value
+ */
+lightweight_json_err_t lightweight_json_reader_get_double(lightweight_json_reader_ctx_t *ctx, const char *key, double *out_value);
+
+/**
+ * @brief Enter a child object / array by key or from the current array position
+ * 
+ * @param[in] ctx the context
+ * @param[in] key [Optional] the key to look for, leave NULL to use the current array position instead
+ */
+lightweight_json_err_t lightweight_json_reader_enter(lightweight_json_reader_ctx_t *ctx, const char *key);
+
+/**
+ * @brief Leave the current child object / array
+ * 
+ * @param[in] ctx the context
+ */
+lightweight_json_err_t lightweight_json_reader_leave(lightweight_json_reader_ctx_t *ctx);
+
+/**
+ * @brief Step to the next element of an array
+ * 
+ * @param[in] ctx the context
+ */
+lightweight_json_err_t lightweight_json_reader_array_next(lightweight_json_reader_ctx_t *ctx);
 
 /**
  * @brief Begin a new object ('{') or array ('[')
@@ -71,7 +160,7 @@ lightweight_json_err_t lightweight_json_writer_init(char *buffer, size_t buffer_
  *
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_writer_begin(lightweight_json_ctx_t *ctx,
+lightweight_json_err_t lightweight_json_writer_begin(lightweight_json_writer_ctx_t *ctx,
                                               const char *const key,
                                               lightweight_json_type_e type);
 
@@ -82,7 +171,7 @@ lightweight_json_err_t lightweight_json_writer_begin(lightweight_json_ctx_t *ctx
  *
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_writer_end(lightweight_json_ctx_t *ctx);
+lightweight_json_err_t lightweight_json_writer_end(lightweight_json_writer_ctx_t *ctx);
 
 /**
  * @brief Add a string
@@ -92,7 +181,7 @@ lightweight_json_err_t lightweight_json_writer_end(lightweight_json_ctx_t *ctx);
  * @param[in] value The string to add
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_writer_add_string(lightweight_json_ctx_t *ctx,
+lightweight_json_err_t lightweight_json_writer_add_string(lightweight_json_writer_ctx_t *ctx,
                                                    const char *const key,
                                                    const char *const value);
 
@@ -104,7 +193,7 @@ lightweight_json_err_t lightweight_json_writer_add_string(lightweight_json_ctx_t
  * @param[in] value The double to add
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_writer_add_double(lightweight_json_ctx_t *ctx,
+lightweight_json_err_t lightweight_json_writer_add_double(lightweight_json_writer_ctx_t *ctx,
                                                    const char *const key,
                                                    double value);
 
@@ -116,7 +205,7 @@ lightweight_json_err_t lightweight_json_writer_add_double(lightweight_json_ctx_t
  * @param[in] value The uint64_t to add
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_writer_add_uint64(lightweight_json_ctx_t *ctx,
+lightweight_json_err_t lightweight_json_writer_add_uint64(lightweight_json_writer_ctx_t *ctx,
                                                    const char *const key,
                                                    uint64_t value);
 
@@ -128,7 +217,7 @@ lightweight_json_err_t lightweight_json_writer_add_uint64(lightweight_json_ctx_t
  * @param[in] value The int64_t to add
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_writer_add_int64(lightweight_json_ctx_t *ctx,
+lightweight_json_err_t lightweight_json_writer_add_int64(lightweight_json_writer_ctx_t *ctx,
                                                   const char *const key,
                                                   int64_t value);
 
@@ -140,7 +229,7 @@ lightweight_json_err_t lightweight_json_writer_add_int64(lightweight_json_ctx_t 
  *
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_writer_flush(lightweight_json_ctx_t *ctx);
+lightweight_json_err_t lightweight_json_writer_flush(lightweight_json_writer_ctx_t *ctx);
 
 // --- Helper defines ---
 // These expect the context to be a static value called "ctx" in the current
