@@ -356,6 +356,9 @@ lightweight_json_reader_get_string(lightweight_json_reader_ctx_t *ctx,
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
 
+  // reset output buffer just in case
+  memset(buffer, 0, buffer_len);
+
   size_t offset = ctx->current_offset[ctx->nesting] +
                   ctx->current_suboffset[ctx->nesting] + 1;
 
