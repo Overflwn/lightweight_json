@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 
@@ -33,7 +34,8 @@ typedef enum {
 /**
  * @brief Flush callback called every time the buffer gets full
  *
- * @param[in] buffer The buffer. NOTE: The buffer will not be null terminated! Use `amount` for the string length
+ * @param[in] buffer The buffer. NOTE: The buffer will not be null terminated!
+ * Use `amount` for the string length
  * @param[in] amount The amount of data to flush
  * @param[in] userdata The userdata passed when the context was initialized
  */
@@ -69,87 +71,122 @@ typedef struct {
 callback
  * @param[in] ctx The context to initialize
  */
-lightweight_json_err_t lightweight_json_writer_init(char *buffer, size_t buffer_size,
-                                             flush_cb_t flush_cb,
-                                             void *userdata,
-                                             lightweight_json_writer_ctx_t *ctx);
+lightweight_json_err_t
+lightweight_json_writer_init(char *buffer, size_t buffer_size,
+                             flush_cb_t flush_cb, void *userdata,
+                             lightweight_json_writer_ctx_t *ctx);
 
 /**
  * @brief Initialize the given reader context
- * 
+ *
  * @param[in] buffer the string to parse
  * @param[in] buffer_size the buffer size
  * @param[in] ctx the context to initialize
  */
-lightweight_json_err_t lightweight_json_reader_init(const char *buffer, size_t buffer_size, lightweight_json_reader_ctx_t *ctx);
+lightweight_json_err_t
+lightweight_json_reader_init(const char *buffer, size_t buffer_size,
+                             lightweight_json_reader_ctx_t *ctx);
 
 /**
- * @brief Check if the given key exists in the current object the reader is in 
- * 
+ * @brief Check if the given key exists in the current object the reader is in
+ *
  * @param[in] ctx the context
  * @param[in] key the key to look for
  */
-lightweight_json_err_t lightweight_json_reader_key_exists(lightweight_json_reader_ctx_t *ctx, const char *key);
+lightweight_json_err_t
+lightweight_json_reader_key_exists(lightweight_json_reader_ctx_t *ctx,
+                                   const char *key);
 
 /**
  * @brief Get a string from the value of key or from the current array position
- *        NOTE: The string gets written into the given buffer and will be null terminated
- * 
+ *        NOTE: The string gets written into the given buffer and will be null
+ * terminated
+ *
  * @param[in] ctx the context
- * @param[in] key [Optional] the key to look for, leave NULL to use the current array position instead
+ * @param[in] key [Optional] the key to look for, leave NULL to use the current
+ * array position instead
  * @param[in] buffer Buffer to write the value into
  * @param[in] buffer_len the buffer size
  */
-lightweight_json_err_t lightweight_json_reader_get_string(lightweight_json_reader_ctx_t *ctx, const char *key, char *buffer, size_t buffer_len);
+lightweight_json_err_t
+lightweight_json_reader_get_string(lightweight_json_reader_ctx_t *ctx,
+                                   const char *key, char *buffer,
+                                   size_t buffer_len);
 
 /**
  * @brief Get a uint64 from the value of key or from the current array position
- * 
+ *
  * @param[in] ctx the context
- * @param[in] key [Optional] the key to look for, leave NULL to use the current array position instead
+ * @param[in] key [Optional] the key to look for, leave NULL to use the current
+ * array position instead
  * @param[out] out_value The read value
  */
-lightweight_json_err_t lightweight_json_reader_get_uint64(lightweight_json_reader_ctx_t *ctx, const char *key, uint64_t *out_value);
+lightweight_json_err_t
+lightweight_json_reader_get_uint64(lightweight_json_reader_ctx_t *ctx,
+                                   const char *key, uint64_t *out_value);
 
 /**
  * @brief Get a int64 from the value of key or from the current array position
- * 
+ *
  * @param[in] ctx the context
- * @param[in] key [Optional] the key to look for, leave NULL to use the current array position instead
+ * @param[in] key [Optional] the key to look for, leave NULL to use the current
+ * array position instead
  * @param[out] out_value The read value
  */
-lightweight_json_err_t lightweight_json_reader_get_int64(lightweight_json_reader_ctx_t *ctx, const char *key, int64_t *out_value);
+lightweight_json_err_t
+lightweight_json_reader_get_int64(lightweight_json_reader_ctx_t *ctx,
+                                  const char *key, int64_t *out_value);
 
 /**
  * @brief Get a double from the value of key or from the current array position
- * 
+ *
  * @param[in] ctx the context
- * @param[in] key [Optional] the key to look for, leave NULL to use the current array position instead
+ * @param[in] key [Optional] the key to look for, leave NULL to use the current
+ * array position instead
  * @param[out] out_value The read value
  */
-lightweight_json_err_t lightweight_json_reader_get_double(lightweight_json_reader_ctx_t *ctx, const char *key, double *out_value);
+lightweight_json_err_t
+lightweight_json_reader_get_double(lightweight_json_reader_ctx_t *ctx,
+                                   const char *key, double *out_value);
+
+/**
+ * @brief Get a bool from the value of key or from the current array position
+ *
+ * @param[in] ctx the context
+ * @param[in] key [Optional] the key to look for, leave NULL to use the current
+ * array position instead
+ * @param[out] out_value The read value
+ */
+lightweight_json_err_t
+lightweight_json_reader_get_bool(lightweight_json_reader_ctx_t *ctx,
+                                 const char *key, bool *out_value);
 
 /**
  * @brief Enter a child object / array by key or from the current array position
- * 
+ *
  * @param[in] ctx the context
- * @param[in] key [Optional] the key to look for, leave NULL to use the current array position instead
+ * @param[in] key [Optional] the key to look for, leave NULL to use the current
+ * array position instead
  */
-lightweight_json_err_t lightweight_json_reader_enter(lightweight_json_reader_ctx_t *ctx, const char *key);
+lightweight_json_err_t
+lightweight_json_reader_enter(lightweight_json_reader_ctx_t *ctx,
+                              const char *key);
 
 /**
  * @brief Leave the current child object / array
- * 
+ *
  * @param[in] ctx the context
  */
-lightweight_json_err_t lightweight_json_reader_leave(lightweight_json_reader_ctx_t *ctx);
+lightweight_json_err_t
+lightweight_json_reader_leave(lightweight_json_reader_ctx_t *ctx);
 
 /**
  * @brief Step to the next element of an array
- * 
+ *
  * @param[in] ctx the context
  */
-lightweight_json_err_t lightweight_json_reader_array_next(lightweight_json_reader_ctx_t *ctx);
+lightweight_json_err_t
+lightweight_json_reader_array_next(lightweight_json_reader_ctx_t *ctx);
 
 /**
  * @brief Begin a new object ('{') or array ('[')
@@ -160,9 +197,10 @@ lightweight_json_err_t lightweight_json_reader_array_next(lightweight_json_reade
  *
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_writer_begin(lightweight_json_writer_ctx_t *ctx,
-                                              const char *const key,
-                                              lightweight_json_type_e type);
+lightweight_json_err_t
+lightweight_json_writer_begin(lightweight_json_writer_ctx_t *ctx,
+                              const char *const key,
+                              lightweight_json_type_e type);
 
 /**
  * @brief End the current object or array
@@ -171,7 +209,8 @@ lightweight_json_err_t lightweight_json_writer_begin(lightweight_json_writer_ctx
  *
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_writer_end(lightweight_json_writer_ctx_t *ctx);
+lightweight_json_err_t
+lightweight_json_writer_end(lightweight_json_writer_ctx_t *ctx);
 
 /**
  * @brief Add a string
@@ -181,9 +220,10 @@ lightweight_json_err_t lightweight_json_writer_end(lightweight_json_writer_ctx_t
  * @param[in] value The string to add
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_writer_add_string(lightweight_json_writer_ctx_t *ctx,
-                                                   const char *const key,
-                                                   const char *const value);
+lightweight_json_err_t
+lightweight_json_writer_add_string(lightweight_json_writer_ctx_t *ctx,
+                                   const char *const key,
+                                   const char *const value);
 
 /**
  * @brief Add a double
@@ -193,9 +233,9 @@ lightweight_json_err_t lightweight_json_writer_add_string(lightweight_json_write
  * @param[in] value The double to add
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_writer_add_double(lightweight_json_writer_ctx_t *ctx,
-                                                   const char *const key,
-                                                   double value);
+lightweight_json_err_t
+lightweight_json_writer_add_double(lightweight_json_writer_ctx_t *ctx,
+                                   const char *const key, double value);
 
 /**
  * @brief Add a uint64_t
@@ -205,9 +245,9 @@ lightweight_json_err_t lightweight_json_writer_add_double(lightweight_json_write
  * @param[in] value The uint64_t to add
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_writer_add_uint64(lightweight_json_writer_ctx_t *ctx,
-                                                   const char *const key,
-                                                   uint64_t value);
+lightweight_json_err_t
+lightweight_json_writer_add_uint64(lightweight_json_writer_ctx_t *ctx,
+                                   const char *const key, uint64_t value);
 
 /**
  * @brief Add a int64_t
@@ -217,9 +257,21 @@ lightweight_json_err_t lightweight_json_writer_add_uint64(lightweight_json_write
  * @param[in] value The int64_t to add
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_writer_add_int64(lightweight_json_writer_ctx_t *ctx,
-                                                  const char *const key,
-                                                  int64_t value);
+lightweight_json_err_t
+lightweight_json_writer_add_int64(lightweight_json_writer_ctx_t *ctx,
+                                  const char *const key, int64_t value);
+
+/**
+ * @brief Add a bool
+ *
+ * @param[in] ctx The context
+ * @param[in] key [Optional] key to use
+ * @param[in] value The bool to add
+ * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
+ */
+lightweight_json_err_t
+lightweight_json_writer_add_bool(lightweight_json_writer_ctx_t *ctx,
+                                 const char *const key, bool value);
 
 /**
  * @brief Flush the buffer manually, used for when example your object is done
@@ -229,7 +281,8 @@ lightweight_json_err_t lightweight_json_writer_add_int64(lightweight_json_writer
  *
  * @return `LIGHTWEIGHT_JSON_ERR_NONE` on success
  */
-lightweight_json_err_t lightweight_json_writer_flush(lightweight_json_writer_ctx_t *ctx);
+lightweight_json_err_t
+lightweight_json_writer_flush(lightweight_json_writer_ctx_t *ctx);
 
 // --- Helper defines ---
 // These expect the context to be a static value called "ctx" in the current

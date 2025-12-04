@@ -199,6 +199,25 @@ lightweight_json_writer_add_uint64(lightweight_json_writer_ctx_t *ctx,
 }
 
 lightweight_json_err_t
+lightweight_json_writer_add_bool(lightweight_json_writer_ctx_t *ctx,
+                                 const char *const key, bool value) {
+  if (NULL == ctx) {
+    return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
+  }
+  if (ctx->nesting < 0) {
+    // The user didn't begin at least a "main" object
+    return LIGHTWEIGHT_JSON_ERR_INVALID_STATE;
+  }
+  char temp[64] = {0};
+  snprintf(temp, sizeof(temp), "%s", value ? "true" : "false");
+  add_comma(ctx);
+  add_key(ctx, key);
+  add_str(ctx, temp);
+  ctx->objects_in_object[ctx->nesting]++;
+  return LIGHTWEIGHT_JSON_ERR_NONE;
+}
+
+lightweight_json_err_t
 lightweight_json_writer_flush(lightweight_json_writer_ctx_t *ctx) {
   if (NULL == ctx) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
@@ -630,4 +649,56 @@ lightweight_json_reader_array_next(lightweight_json_reader_ctx_t *ctx) {
   }
 
   return LIGHTWEIGHT_JSON_ERR_NONE;
+}
+
+lightweight_json_err_t
+lightweight_json_reader_get_bool(lightweight_json_reader_ctx_t *ctx,
+                                 const char *key, bool *out_value) {
+  if (NULL == ctx || NULL == out_value) {
+    return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
+  }
+
+  size_t offset = ctx->current_offset[ctx->nesting] +
+                  ctx->current_suboffset[ctx->nesting] + 1;
+
+  if (NULL != key) {
+    offset = find_key(ctx, key);
+    if (0 == offset) {
+      return LIGHTWEIGHT_JSON_ERR_NOT_FOUND;
+    }
+
+    // Skip key and the two "s and colon
+    offset += strlen(key) + 3;
+  }
+
+  char temp[16] = {0};
+  for (; offset < ctx->buffer_size; offset++) {
+    const char c = ctx->buffer[offset];
+
+    switch (c) {
+    case 't':
+      // Copy "true"
+      memcpy(temp, &ctx->buffer[offset], 4);
+      break;
+    case 'f':
+      // Copy "false"
+      memcpy(temp, &ctx->buffer[offset], 5);
+      break;
+    default:
+      if (c != ' ' && c != '\r' && c != '\n' && c != '\t' && c != ':') {
+        return LIGHTWEIGHT_JSON_ERR_INVALID_DATATYPE;
+      }
+      break;
+    }
+  }
+
+  if (0 == strcmp(temp, "true")) {
+    *out_value = true;
+  } else if (0 == strcmp(temp, "false")) {
+    *out_value = false;
+  } else {
+    return LIGHTWEIGHT_JSON_ERR_INVALID_DATATYPE;
+  }
+
+  return LIGHTWEIGHT_JSON_ERR_NOT_FOUND;
 }
