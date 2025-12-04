@@ -1,13 +1,13 @@
 #include "lightweight_json.h"
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <stdbool.h>
 
-lightweight_json_err_t lightweight_json_writer_init(char *buffer, size_t buffer_size,
-                                             flush_cb_t flush_cb,
-                                             void *userdata,
-                                             lightweight_json_writer_ctx_t *ctx) {
+lightweight_json_err_t
+lightweight_json_writer_init(char *buffer, size_t buffer_size,
+                             flush_cb_t flush_cb, void *userdata,
+                             lightweight_json_writer_ctx_t *ctx) {
   if (NULL == buffer || buffer_size < 2 || NULL == flush_cb || NULL == ctx) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
@@ -54,16 +54,18 @@ static void add_key(lightweight_json_writer_ctx_t *ctx, const char *const key) {
   }
 }
 
-static void add_str(lightweight_json_writer_ctx_t *ctx, const char *const value) {
+static void add_str(lightweight_json_writer_ctx_t *ctx,
+                    const char *const value) {
   for (int i = 0; i < strlen(value); i++) {
     ctx->buffer[ctx->offset++] = value[i];
     check_buffer(ctx, false);
   }
 }
 
-lightweight_json_err_t lightweight_json_writer_begin(lightweight_json_writer_ctx_t *ctx,
-                                              const char *const key,
-                                              lightweight_json_type_e type) {
+lightweight_json_err_t
+lightweight_json_writer_begin(lightweight_json_writer_ctx_t *ctx,
+                              const char *const key,
+                              lightweight_json_type_e type) {
   if (NULL == ctx || (uint8_t)LIGHTWEIGHT_JSON_NONE <= (uint8_t)type) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
@@ -91,7 +93,8 @@ lightweight_json_err_t lightweight_json_writer_begin(lightweight_json_writer_ctx
   return LIGHTWEIGHT_JSON_ERR_NONE;
 }
 
-lightweight_json_err_t lightweight_json_writer_end(lightweight_json_writer_ctx_t *ctx) {
+lightweight_json_err_t
+lightweight_json_writer_end(lightweight_json_writer_ctx_t *ctx) {
   if (NULL == ctx) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
@@ -113,9 +116,10 @@ lightweight_json_err_t lightweight_json_writer_end(lightweight_json_writer_ctx_t
   return LIGHTWEIGHT_JSON_ERR_NONE;
 }
 
-lightweight_json_err_t lightweight_json_writer_add_string(lightweight_json_writer_ctx_t *ctx,
-                                                   const char *const key,
-                                                   const char *const value) {
+lightweight_json_err_t
+lightweight_json_writer_add_string(lightweight_json_writer_ctx_t *ctx,
+                                   const char *const key,
+                                   const char *const value) {
   if (NULL == ctx || NULL == value) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
@@ -137,9 +141,9 @@ lightweight_json_err_t lightweight_json_writer_add_string(lightweight_json_write
   return LIGHTWEIGHT_JSON_ERR_NONE;
 }
 
-lightweight_json_err_t lightweight_json_writer_add_double(lightweight_json_writer_ctx_t *ctx,
-                                                   const char *const key,
-                                                   double value) {
+lightweight_json_err_t
+lightweight_json_writer_add_double(lightweight_json_writer_ctx_t *ctx,
+                                   const char *const key, double value) {
   if (NULL == ctx) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
@@ -156,9 +160,9 @@ lightweight_json_err_t lightweight_json_writer_add_double(lightweight_json_write
   return LIGHTWEIGHT_JSON_ERR_NONE;
 }
 
-lightweight_json_err_t lightweight_json_writer_add_int64(lightweight_json_writer_ctx_t *ctx,
-                                                  const char *const key,
-                                                  int64_t value) {
+lightweight_json_err_t
+lightweight_json_writer_add_int64(lightweight_json_writer_ctx_t *ctx,
+                                  const char *const key, int64_t value) {
   if (NULL == ctx) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
@@ -175,9 +179,9 @@ lightweight_json_err_t lightweight_json_writer_add_int64(lightweight_json_writer
   return LIGHTWEIGHT_JSON_ERR_NONE;
 }
 
-lightweight_json_err_t lightweight_json_writer_add_uint64(lightweight_json_writer_ctx_t *ctx,
-                                                   const char *const key,
-                                                   uint64_t value) {
+lightweight_json_err_t
+lightweight_json_writer_add_uint64(lightweight_json_writer_ctx_t *ctx,
+                                   const char *const key, uint64_t value) {
   if (NULL == ctx) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
@@ -194,7 +198,8 @@ lightweight_json_err_t lightweight_json_writer_add_uint64(lightweight_json_write
   return LIGHTWEIGHT_JSON_ERR_NONE;
 }
 
-lightweight_json_err_t lightweight_json_writer_flush(lightweight_json_writer_ctx_t *ctx) {
+lightweight_json_err_t
+lightweight_json_writer_flush(lightweight_json_writer_ctx_t *ctx) {
   if (NULL == ctx) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
@@ -203,7 +208,9 @@ lightweight_json_err_t lightweight_json_writer_flush(lightweight_json_writer_ctx
   return LIGHTWEIGHT_JSON_ERR_NONE;
 }
 
-lightweight_json_err_t lightweight_json_reader_init(const char *buffer, size_t buffer_size, lightweight_json_reader_ctx_t *ctx) {
+lightweight_json_err_t
+lightweight_json_reader_init(const char *buffer, size_t buffer_size,
+                             lightweight_json_reader_ctx_t *ctx) {
   if (NULL == buffer || 0 == buffer_size || NULL == ctx) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
@@ -239,7 +246,7 @@ static size_t find_key(lightweight_json_reader_ctx_t *ctx, const char *key) {
     return 0;
   }
 
-  size_t offset = ctx->current_offset[ctx->nesting]+1;
+  size_t offset = ctx->current_offset[ctx->nesting] + 1;
   int nesting = 0;
   bool in_string = false;
   bool is_val = false;
@@ -249,41 +256,41 @@ static size_t find_key(lightweight_json_reader_ctx_t *ctx, const char *key) {
     const char c = ctx->buffer[offset];
 
     switch (c) {
-      case '\"':
+    case '\"':
       if (nesting == 0 && !is_val) {
         if (!in_string) {
-          cur_string_offset = offset+1;
+          cur_string_offset = offset + 1;
         } else {
-          cur_string_end = offset-1;
+          cur_string_end = offset - 1;
           const char *found_key = &ctx->buffer[cur_string_offset];
           char temp[64] = {0};
-          memcpy(temp, found_key, cur_string_end-cur_string_offset+1);
+          memcpy(temp, found_key, cur_string_end - cur_string_offset + 1);
 
           if (0 == strcmp(temp, key)) {
-            return cur_string_offset-1;
+            return cur_string_offset - 1;
           }
         }
       }
       in_string = !in_string;
       break;
-      case ':':
+    case ':':
       if (nesting == 0) {
         is_val = true;
       }
       break;
-      case ',':
+    case ',':
       if (!in_string && nesting == 0) {
         is_val = false;
       }
       break;
-      case '[':
-      case '{':
+    case '[':
+    case '{':
       if (!in_string) {
         nesting++;
       }
       break;
-      case ']':
-      case '}':
+    case ']':
+    case '}':
       if (!in_string) {
         nesting--;
         if (nesting < 0) {
@@ -292,13 +299,13 @@ static size_t find_key(lightweight_json_reader_ctx_t *ctx, const char *key) {
         }
       }
       break;
-      case '\\':
+    case '\\':
       if (in_string) {
         // Skip escape sequence
         offset++;
       }
       break;
-      default:
+    default:
 
       break;
     }
@@ -307,7 +314,9 @@ static size_t find_key(lightweight_json_reader_ctx_t *ctx, const char *key) {
   return 0;
 }
 
-lightweight_json_err_t lightweight_json_reader_key_exists(lightweight_json_reader_ctx_t *ctx, const char *key) {
+lightweight_json_err_t
+lightweight_json_reader_key_exists(lightweight_json_reader_ctx_t *ctx,
+                                   const char *key) {
   if (NULL == key || NULL == key) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
@@ -320,12 +329,16 @@ lightweight_json_err_t lightweight_json_reader_key_exists(lightweight_json_reade
   return LIGHTWEIGHT_JSON_ERR_NONE;
 }
 
-lightweight_json_err_t lightweight_json_reader_get_string(lightweight_json_reader_ctx_t *ctx, const char *key, char *buffer, size_t buffer_len) {
+lightweight_json_err_t
+lightweight_json_reader_get_string(lightweight_json_reader_ctx_t *ctx,
+                                   const char *key, char *buffer,
+                                   size_t buffer_len) {
   if (NULL == ctx || NULL == buffer || 0 == buffer_len) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
 
-  size_t offset = ctx->current_offset[ctx->nesting] + ctx->current_suboffset[ctx->nesting] + 1;
+  size_t offset = ctx->current_offset[ctx->nesting] +
+                  ctx->current_suboffset[ctx->nesting] + 1;
 
   if (NULL != key) {
     offset = find_key(ctx, key);
@@ -343,9 +356,8 @@ lightweight_json_err_t lightweight_json_reader_get_string(lightweight_json_reade
   for (; offset < ctx->buffer_size; offset++) {
     const char c = ctx->buffer[offset];
 
-    switch (c)
-    {
-      case '\"':
+    switch (c) {
+    case '\"':
       if (!in_string) {
         in_string = true;
         string_begin = offset;
@@ -353,16 +365,19 @@ lightweight_json_err_t lightweight_json_reader_get_string(lightweight_json_reade
         string_end = offset;
         in_string = false;
         const size_t len = string_end - string_begin - 1;
-        memcpy(buffer, &ctx->buffer[string_begin+1], string_end - string_begin - 1);
+        memcpy(buffer, &ctx->buffer[string_begin + 1],
+               string_end - string_begin - 1);
         buffer[len] = '\0';
         return LIGHTWEIGHT_JSON_ERR_NONE;
       }
-      case '\\':
+      break;
+    case '\\':
       // Skip escape
       offset++;
       break;
-      default:
-      if (!in_string && c != ' ' && c != '\r' && c != '\n' && c != '\t' && c != ':') {
+    default:
+      if (!in_string && c != ' ' && c != '\r' && c != '\n' && c != '\t' &&
+          c != ':') {
         return LIGHTWEIGHT_JSON_ERR_INVALID_DATATYPE;
       }
       break;
@@ -372,19 +387,21 @@ lightweight_json_err_t lightweight_json_reader_get_string(lightweight_json_reade
   return LIGHTWEIGHT_JSON_ERR_NOT_FOUND;
 }
 
-typedef enum
-{
+typedef enum {
   NUMERICAL_TYPE_UINT64,
   NUMERICAL_TYPE_INT64,
   NUMERICAL_TYPE_DOUBLE,
 } numerical_type_t;
 
-static lightweight_json_err_t get_numerical(lightweight_json_reader_ctx_t *ctx, const char *key, void *out_value, numerical_type_t numerical_type) {
+static lightweight_json_err_t get_numerical(lightweight_json_reader_ctx_t *ctx,
+                                            const char *key, void *out_value,
+                                            numerical_type_t numerical_type) {
   if (NULL == ctx || NULL == out_value) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
 
-  size_t offset = ctx->current_offset[ctx->nesting] + ctx->current_suboffset[ctx->nesting] + 1;
+  size_t offset = ctx->current_offset[ctx->nesting] +
+                  ctx->current_suboffset[ctx->nesting] + 1;
   if (NULL != key) {
     offset = find_key(ctx, key);
     if (0 == offset) {
@@ -402,24 +419,23 @@ static lightweight_json_err_t get_numerical(lightweight_json_reader_ctx_t *ctx, 
   for (; offset < ctx->buffer_size; offset++) {
     const char c = ctx->buffer[offset];
 
-    switch (c)
-    {
-      case '0':
-      case '1':
-      case '2':
-      case '3':
-      case '4':
-      case '5':
-      case '6':
-      case '7':
-      case '8':
-      case '9':
+    switch (c) {
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
       if (!in_num) {
         in_num = true;
         num_begin = offset;
       }
       break;
-      case '-':
+    case '-':
       if (!in_num) {
         in_num = true;
         num_begin = offset;
@@ -427,16 +443,16 @@ static lightweight_json_err_t get_numerical(lightweight_json_reader_ctx_t *ctx, 
         return LIGHTWEIGHT_JSON_ERR_INVALID_JSON;
       }
       break;
-      case '.':
+    case '.':
       if (in_num && decimal_count == 0) {
         decimal_count++;
       } else {
         return LIGHTWEIGHT_JSON_ERR_INVALID_JSON;
       }
       break;
-      case ',':
-      case ']':
-      case '}':
+    case ',':
+    case ']':
+    case '}':
       if (!in_num) {
         return LIGHTWEIGHT_JSON_ERR_INVALID_JSON;
       }
@@ -444,24 +460,24 @@ static lightweight_json_err_t get_numerical(lightweight_json_reader_ctx_t *ctx, 
       num_end = offset;
 
       char temp[64] = {0};
-      memcpy(temp, &ctx->buffer[num_begin], num_end-num_begin);
+      memcpy(temp, &ctx->buffer[num_begin], num_end - num_begin);
 
       switch (numerical_type) {
-        case NUMERICAL_TYPE_UINT64:
-        *(uint64_t*)out_value = strtoull(temp, NULL, 0);
+      case NUMERICAL_TYPE_UINT64:
+        *(uint64_t *)out_value = strtoull(temp, NULL, 0);
         break;
-        case NUMERICAL_TYPE_INT64:
-        *(int64_t*)out_value = strtoll(temp, NULL, 0);
+      case NUMERICAL_TYPE_INT64:
+        *(int64_t *)out_value = strtoll(temp, NULL, 0);
         break;
-        case NUMERICAL_TYPE_DOUBLE:
-        *(double*)out_value = strtod(temp, NULL);
+      case NUMERICAL_TYPE_DOUBLE:
+        *(double *)out_value = strtod(temp, NULL);
         break;
-        default:
+      default:
         return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
       }
       return LIGHTWEIGHT_JSON_ERR_NONE;
       break;
-      default:
+    default:
       if (c != ' ' && c != '\r' && c != '\n' && c != '\t' && c != ':') {
         return LIGHTWEIGHT_JSON_ERR_INVALID_DATATYPE;
       }
@@ -472,24 +488,33 @@ static lightweight_json_err_t get_numerical(lightweight_json_reader_ctx_t *ctx, 
   return LIGHTWEIGHT_JSON_ERR_NOT_FOUND;
 }
 
-lightweight_json_err_t lightweight_json_reader_get_uint64(lightweight_json_reader_ctx_t *ctx, const char *key, uint64_t *out_value) {
-  return get_numerical(ctx, key, (void*)out_value, NUMERICAL_TYPE_UINT64);
+lightweight_json_err_t
+lightweight_json_reader_get_uint64(lightweight_json_reader_ctx_t *ctx,
+                                   const char *key, uint64_t *out_value) {
+  return get_numerical(ctx, key, (void *)out_value, NUMERICAL_TYPE_UINT64);
 }
 
-lightweight_json_err_t lightweight_json_reader_get_double(lightweight_json_reader_ctx_t *ctx, const char *key, double *out_value) {
-  return get_numerical(ctx, key, (void*)out_value, NUMERICAL_TYPE_DOUBLE);
+lightweight_json_err_t
+lightweight_json_reader_get_double(lightweight_json_reader_ctx_t *ctx,
+                                   const char *key, double *out_value) {
+  return get_numerical(ctx, key, (void *)out_value, NUMERICAL_TYPE_DOUBLE);
 }
 
-lightweight_json_err_t lightweight_json_reader_get_int64(lightweight_json_reader_ctx_t *ctx, const char *key, int64_t *out_value) {
-  return get_numerical(ctx, key, (void*)out_value, NUMERICAL_TYPE_INT64);
+lightweight_json_err_t
+lightweight_json_reader_get_int64(lightweight_json_reader_ctx_t *ctx,
+                                  const char *key, int64_t *out_value) {
+  return get_numerical(ctx, key, (void *)out_value, NUMERICAL_TYPE_INT64);
 }
 
-lightweight_json_err_t lightweight_json_reader_enter(lightweight_json_reader_ctx_t *ctx, const char *key) {
+lightweight_json_err_t
+lightweight_json_reader_enter(lightweight_json_reader_ctx_t *ctx,
+                              const char *key) {
   if (NULL == ctx) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
 
-  size_t offset = ctx->current_offset[ctx->nesting] + ctx->current_suboffset[ctx->nesting] + 1;
+  size_t offset = ctx->current_offset[ctx->nesting] +
+                  ctx->current_suboffset[ctx->nesting] + 1;
   if (key) {
     offset = find_key(ctx, key);
     if (0 == offset) {
@@ -505,22 +530,22 @@ lightweight_json_err_t lightweight_json_reader_enter(lightweight_json_reader_ctx
     const char c = ctx->buffer[offset];
 
     switch (c) {
-      case '\"':
+    case '\"':
       in_string = !in_string;
       break;
-      case '\\':
+    case '\\':
       // Skip escape
       offset++;
       break;
-      case '}':
-      case ']':
-      case ',':
+    case '}':
+    case ']':
+    case ',':
       if (!in_string) {
         return LIGHTWEIGHT_JSON_ERR_NOT_FOUND;
       }
       break;
-      case '[':
-      case '{':
+    case '[':
+    case '{':
       if (!in_string) {
         ctx->nesting++;
         ctx->current_offset[ctx->nesting] = offset;
@@ -533,7 +558,7 @@ lightweight_json_err_t lightweight_json_reader_enter(lightweight_json_reader_ctx
         return LIGHTWEIGHT_JSON_ERR_NONE;
       }
       break;
-      default:
+    default:
       if (c != ' ' && c != '\t' && c != '\r' && c != '\n') {
         return LIGHTWEIGHT_JSON_ERR_INVALID_DATATYPE;
       }
@@ -542,7 +567,8 @@ lightweight_json_err_t lightweight_json_reader_enter(lightweight_json_reader_ctx
   }
   return LIGHTWEIGHT_JSON_ERR_NOT_FOUND;
 }
-lightweight_json_err_t lightweight_json_reader_leave(lightweight_json_reader_ctx_t *ctx) {
+lightweight_json_err_t
+lightweight_json_reader_leave(lightweight_json_reader_ctx_t *ctx) {
   if (NULL == ctx) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
@@ -553,7 +579,8 @@ lightweight_json_err_t lightweight_json_reader_leave(lightweight_json_reader_ctx
   return LIGHTWEIGHT_JSON_ERR_NONE;
 }
 
-lightweight_json_err_t lightweight_json_reader_array_next(lightweight_json_reader_ctx_t *ctx) {
+lightweight_json_err_t
+lightweight_json_reader_array_next(lightweight_json_reader_ctx_t *ctx) {
   if (NULL == ctx) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
@@ -562,39 +589,41 @@ lightweight_json_err_t lightweight_json_reader_array_next(lightweight_json_reade
     return LIGHTWEIGHT_JSON_ERR_INVALID_STATE;
   }
 
-  size_t offset = ctx->current_offset[ctx->nesting] + ctx->current_suboffset[ctx->nesting] + 1;
+  size_t offset = ctx->current_offset[ctx->nesting] +
+                  ctx->current_suboffset[ctx->nesting] + 1;
   bool in_string = false;
   int nesting = 0;
-  for(; offset < ctx->buffer_size; offset++) {
+  for (; offset < ctx->buffer_size; offset++) {
     const char c = ctx->buffer[offset];
     switch (c) {
-      case ',':
+    case ',':
       if (!in_string && nesting == 0) {
-        ctx->current_suboffset[ctx->nesting] = offset - ctx->current_offset[ctx->nesting];
+        ctx->current_suboffset[ctx->nesting] =
+            offset - ctx->current_offset[ctx->nesting];
         return LIGHTWEIGHT_JSON_ERR_NONE;
       }
       break;
-      case '\"':
+    case '\"':
       in_string = !in_string;
       break;
-      case '\\':
+    case '\\':
       offset++;
       break;
-      case '{':
-      case '[':
+    case '{':
+    case '[':
       if (!in_string) {
         nesting++;
       }
       break;
-      case ']':
-      case '}':
+    case ']':
+    case '}':
       if (!in_string && nesting > 0) {
         nesting--;
       } else if (!in_string) {
         return LIGHTWEIGHT_JSON_ERR_NOT_FOUND;
       }
       break;
-      default:
+    default:
 
       break;
     }
