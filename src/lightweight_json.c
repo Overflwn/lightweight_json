@@ -675,17 +675,20 @@ lightweight_json_reader_get_bool(lightweight_json_reader_ctx_t *ctx,
   }
 
   char temp[16] = {0};
-  for (; offset < ctx->buffer_size; offset++) {
+  bool found = false;
+  for (; offset < ctx->buffer_size && !found; offset++) {
     const char c = ctx->buffer[offset];
 
     switch (c) {
     case 't':
       // Copy "true"
       memcpy(temp, &ctx->buffer[offset], 4);
+      found = true;
       break;
     case 'f':
       // Copy "false"
       memcpy(temp, &ctx->buffer[offset], 5);
+      found = true;
       break;
     default:
       if (c != ' ' && c != '\r' && c != '\n' && c != '\t' && c != ':') {
