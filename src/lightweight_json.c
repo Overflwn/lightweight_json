@@ -703,5 +703,5 @@ lightweight_json_reader_get_bool(lightweight_json_reader_ctx_t *ctx,
     return LIGHTWEIGHT_JSON_ERR_INVALID_DATATYPE;
   }
 
-  return LIGHTWEIGHT_JSON_ERR_NOT_FOUND;
+  return LIGHTWEIGHT_JSON_ERR_NONE;
 }
