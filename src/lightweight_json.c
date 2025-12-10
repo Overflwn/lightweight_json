@@ -56,9 +56,16 @@ static void add_key(lightweight_json_writer_ctx_t *ctx, const char *const key) {
 
 static void add_str(lightweight_json_writer_ctx_t *ctx,
                     const char *const value) {
-  for (int i = 0; i < strlen(value); i++) {
+  int i = 0;
+  while (value[i] != '\0') {
+    if (value[i] == '\"' || value[i] == '\\' || value[i] == '\n' ||
+        value[i] == '\r') {
+      ctx->buffer[ctx->offset++] = '\\';
+      check_buffer(ctx, false);
+    }
     ctx->buffer[ctx->offset++] = value[i];
     check_buffer(ctx, false);
+    i++;
   }
 }
 
