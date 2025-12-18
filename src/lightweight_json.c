@@ -240,6 +240,7 @@ lightweight_json_reader_init(const char *buffer, size_t buffer_size,
   if (NULL == buffer || 0 == buffer_size || NULL == ctx) {
     return LIGHTWEIGHT_JSON_ERR_INVALID_ARGS;
   }
+  memset(ctx, 0, sizeof(lightweight_json_reader_ctx_t));
   ctx->buffer = buffer;
   ctx->buffer_size = buffer_size;
   memset(ctx->current_offset, 0, sizeof(ctx->current_offset));
